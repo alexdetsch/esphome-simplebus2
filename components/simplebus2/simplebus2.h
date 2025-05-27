@@ -8,6 +8,8 @@
 #include "esphome/core/log.h"
 #include "esphome/core/automation.h"
 
+#define SIMPLEBUS2_VERSION "1.0.1-dev" // Example version, adjust as needed
+
 namespace esphome
 {
   namespace simplebus2

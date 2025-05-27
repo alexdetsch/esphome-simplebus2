@@ -42,6 +42,7 @@ void Simplebus2Component::setup() {
 
 void Simplebus2Component::dump_config() {
     ESP_LOGCONFIG(TAG, "Simplebus2:");
+    ESP_LOGCONFIG(TAG, "  Version: %s", SIMPLEBUS2_VERSION);
     LOG_PIN("  Pin RX: ", this->rx_pin);
     LOG_PIN("  Pin TX: ", this->tx_pin);
     ESP_LOGCONFIG(TAG, "  Voltage level: %i", this->voltage_level);
