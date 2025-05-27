@@ -69,7 +69,7 @@ void Simplebus2Component::loop() {
         if (strcmp(this->event, "esphome.none") != 0) {
             ESP_LOGD(TAG, "Send event to home assistant on %s", this->event);
             if (api::global_api_server != nullptr) {
-                api::global_api_server->send_homeassistant_event(this->event, {{"command", std::to_string(this->message_code)},
+                api::global_api_server->fire_homeassistant_event(this->event, {{"command", std::to_string(this->message_code)},
                                                                                {"address", std::to_string(this->message_addr)}});
             } else {
                 ESP_LOGW(TAG, "API server not available, cannot send event to Home Assistant.");
