@@ -91,7 +91,6 @@ namespace esphome
 
     void IRAM_ATTR HOT Simplebus2ComponentStore::gpio_intr(Simplebus2ComponentStore *arg)
     {
-      ESP_LOGD(TAG, "gpio_intr");
       if (!arg->pin_triggered)
       {
         arg->pin_triggered = true;
