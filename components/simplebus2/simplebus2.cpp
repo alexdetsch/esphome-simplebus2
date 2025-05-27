@@ -1,6 +1,6 @@
 #include "simplebus2.h"
 #include "esphome/core/log.h"
-#include "esphome/components/api/custom_api_device.h"
+#include "esphome/components/api/api_server.h" // Changed from custom_api_device.h
 #include "esphome/core/application.h"
 #include <Arduino.h>
 #include <Wire.h>
@@ -77,8 +77,14 @@ namespace esphome
         if (strcmp(this->event, "esphome.none") != 0)
         {
           ESP_LOGD(TAG, "Send event to home assistant on %s", this->event);
-          auto capi = new esphome::api::CustomAPIDevice();
-          capi->fire_homeassistant_event(this->event, {{"command", std::to_string(id(this->message_code))}, {"address", std::to_string(id(this->message_addr))}});
+          if (api::global_api_server != nullptr) {
+            api::global_api_server->fire_homeassistant_event(this->event, {
+              {"command", std::to_string(this->message_code)},
+              {"address", std::to_string(this->message_addr)}
+            });
+          } else {
+            ESP_LOGW(TAG, "API server not available, cannot send event to Home Assistant.");
+          }
         }
         for (auto &listener : listeners_)
         {
