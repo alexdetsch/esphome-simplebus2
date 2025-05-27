@@ -89,7 +89,7 @@ namespace esphome
       }
     }
 
-    void IRAM_ATTR HOT Simplebus2ComponentStore::gpio_intr(Simplebus2ComponentStore *arg)
+    void IRAM_ATTR Simplebus2ComponentStore::gpio_intr(Simplebus2ComponentStore *arg)
     {
       if (!arg->pin_triggered)
       {
@@ -119,27 +119,19 @@ namespace esphome
 
       if (this->message_started)
       {
-        switch (pause_time)
-        {
-        case 2000 ... 4900:
+        if (pause_time >= 2000 && pause_time <= 4900) // Bit 0
         {
           ESP_LOGD(TAG, "0 - %i", pause_time);
           this->message_bit_array[this->message_position] = 0;
           this->message_position++;
-          break;
         }
-        case 5000 ... 9000:
+        else if (pause_time >= 5000 && pause_time <= 9000) // Bit 1
         {
           ESP_LOGD(TAG, "1 - %i", pause_time);
           this->message_bit_array[this->message_position] = 1;
           this->message_position++;
-          break;
         }
-        default:
-        {
-          break;
-        }
-        }
+        // default case from switch did nothing, so no explicit else needed here
       }
 
       if (this->message_position == 18)
