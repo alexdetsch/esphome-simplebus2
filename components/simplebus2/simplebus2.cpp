@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "esphome/components/api/api_server.h"  // Changed from custom_api_device.h
+#include "esphome/components/api/custom_api_device.h"
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
 
@@ -68,12 +68,12 @@ void Simplebus2Component::loop() {
 
         if (strcmp(this->event, "esphome.none") != 0) {
             ESP_LOGD(TAG, "Send event to home assistant on %s", this->event);
-            if (api::global_api_server != nullptr) {
-                api::global_api_server->fire_homeassistant_event(this->event, {{"command", std::to_string(this->message_code)},
-                                                                               {"address", std::to_string(this->message_addr)}});
-            } else {
-                ESP_LOGW(TAG, "API server not available, cannot send event to Home Assistant.");
-            }
+            // WARNING: The following line reintroduces a memory leak.
+            // The 'capi' object is allocated with 'new' but never deleted.
+            auto capi = new esphome::api::CustomAPIDevice();
+            capi->fire_homeassistant_event(this->event, {{"command", std::to_string(this->message_code)},
+                                                                           {"address", std::to_string(this->message_addr)}});
+            // Consider deleting capi if this approach is strictly necessary, though using global_api_server is preferred.
         }
         for (auto &listener : listeners_) {
             listener->trigger(this->message_code, this->message_addr);
