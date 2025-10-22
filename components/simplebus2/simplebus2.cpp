@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <esp32-hal-ledc.h>
 
 #include "esphome/components/api/custom_api_device.h"
 #include "esphome/core/application.h"
@@ -15,7 +16,7 @@
 namespace esphome {
 namespace simplebus2 {
 
-static const char *const TAG = "simplebus2";
+static const char* const TAG = "simplebus2";
 
 void Simplebus2Component::setup() {
     ESP_LOGCONFIG(TAG, "Setting up Simplebus2");
@@ -23,13 +24,14 @@ void Simplebus2Component::setup() {
     this->rx_pin->setup();
     this->tx_pin->setup();
 
-    ledcSetup(0, 25000, 8);
-    ledcAttachPin(this->tx_pin->get_pin(), 0);
+    // ledcSetup(0, 25000, 8);
+    // ledcAttachPin(this->tx_pin->get_pin(), 0);
+    ledcAttach(this->tx_pin->get_pin(), 25000, 8);
 
     set_opv_gain(this->gain);
     set_comparator_voltage_limit(this->voltage_level);
 
-    auto &s = this->store_;
+    auto& s = this->store_;
 
     this->high_freq_.start();
 
@@ -55,7 +57,7 @@ void Simplebus2Component::dump_config() {
 }
 
 void Simplebus2Component::loop() {
-    for (auto &listener : listeners_) {
+    for (auto& listener : listeners_) {
         listener->loop();
     }
 
@@ -69,11 +71,11 @@ void Simplebus2Component::loop() {
         if (strcmp(this->event, "esphome.none") != 0) {
             ESP_LOGD(TAG, "Send event to home assistant on %s", this->event);
             // Create CustomAPIDevice on the stack to avoid memory leaks
-            esphome::api::CustomAPIDevice capi; 
+            esphome::api::CustomAPIDevice capi;
             capi.fire_homeassistant_event(this->event, {{"command", std::to_string(this->message_code)},
-                                                                           {"address", std::to_string(this->message_addr)}});
+                                                        {"address", std::to_string(this->message_addr)}});
         }
-        for (auto &listener : listeners_) {
+        for (auto& listener : listeners_) {
             listener->trigger(this->message_code, this->message_addr);
         }
 
@@ -81,14 +83,14 @@ void Simplebus2Component::loop() {
     }
 }
 
-void IRAM_ATTR HOT Simplebus2ComponentStore::gpio_intr(Simplebus2ComponentStore *arg) {
+void IRAM_ATTR HOT Simplebus2ComponentStore::gpio_intr(Simplebus2ComponentStore* arg) {
     if (!arg->pin_triggered) {
         arg->pin_triggered = true;
     }
 }
 
 void Simplebus2Component::process_interrupt() {
-    auto &s = this->store_;
+    auto& s = this->store_;
 
     unsigned long now = micros();
     unsigned long pause_time = now - this->last_pause_time;
@@ -145,14 +147,14 @@ void Simplebus2Component::process_interrupt() {
     s.pin_triggered = false;
 }
 
-void Simplebus2Component::register_listener(Simplebus2Listener *listener) {
+void Simplebus2Component::register_listener(Simplebus2Listener* listener) {
     this->listeners_.push_back(listener);
 }
 
 void send_pwm() {
-    ledcWrite(0, 50);
+    ledcWrite(this->tx_pin->get_pin(), 50);
     delay(3);
-    ledcWrite(0, 0);
+    ledcWrite(this->tx_pin->get_pin(), 0);
 }
 
 void send_message(bool bitToSend) {
@@ -246,7 +248,7 @@ void Simplebus2Component::set_comparator_voltage_limit(int voltage) {
     set_pot_resistance(false, resistorValue);
 }
 
-void Simplebus2Component::int_to_binary(unsigned int input, int start_pos, int no_of_bits, int *bits) {
+void Simplebus2Component::int_to_binary(unsigned int input, int start_pos, int no_of_bits, int* bits) {
     unsigned int mask = 1;
     int zeroedstart_pos = start_pos - 1;
     for (int i = start_pos; i < no_of_bits + start_pos; i++) {
